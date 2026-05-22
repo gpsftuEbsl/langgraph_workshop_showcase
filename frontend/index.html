@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>情境分析系統</title>
+    <!-- 字體設定 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Serif+TC:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #0f172a;
+            /* 深藍黑背景 */
+            --accent: #38bdf8;
+            /* 柔和天藍色 */
+            --accent-hover: #0ea5e9;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+            --border-radius: 12px;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-base);
+            background-image: radial-gradient(circle at top, #1e293b 0%, #0f172a 100%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            font-family: 'Inter', 'Noto Serif TC', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 3rem 1.5rem;
+            box-sizing: border-box;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3.5rem;
+            opacity: 0;
+            animation: fadeInDown 0.8s ease forwards;
+        }
+
+        header h1 {
+            color: var(--text-main);
+            font-family: 'Noto Serif TC', serif;
+            font-size: 2.8rem;
+            margin-bottom: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        header h1 span {
+            color: var(--accent);
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-weight: 400;
+            margin: 0;
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* 搜尋區塊 */
+        .search-area {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 2.5rem;
+            opacity: 0;
+            animation: fadeIn 1s 0.2s ease forwards;
+            background: var(--glass-bg);
+            padding: 1rem;
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .search-area input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            padding: 0.8rem 0.5rem;
+            color: var(--text-main);
+            font-size: 1.05rem;
+            font-family: inherit;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .search-area input::placeholder {
+            color: #64748b;
+        }
+
+        .search-divider {
+            height: 1px;
+            background: var(--glass-border);
+            margin: 0 0.5rem;
+        }
+
+        .search-action {
+            display: flex;
+            justify-content: flex-end;
+            padding: 0 0.5rem;
+        }
+
+        .search-area button {
+            background: var(--accent);
+            color: #0f172a;
+            border: none;
+            padding: 0.7rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px 0 rgba(56, 189, 248, 0.39);
+        }
+
+        .search-area button:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(56, 189, 248, 0.4);
+        }
+
+        .search-area button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .search-area button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+            background: #475569;
+            color: #94a3b8;
+        }
+
+        /* 訊息區塊 */
+        .message-box {
+            display: none;
+            padding: 1rem 1.2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            font-weight: 500;
+            font-size: 0.95rem;
+            align-items: center;
+        }
+
+        .message-box.error {
+            display: flex;
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            animation: fadeIn 0.3s;
+            backdrop-filter: blur(8px);
+        }
+
+        /* 骨架載入與即時進度 */
+        #progressContainer {
+            margin-bottom: 3rem;
+            padding: 0 1rem;
+        }
+
+        .progress-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+            transition: opacity 0.4s, color 0.4s;
+            font-weight: 500;
+        }
+
+        .progress-step.active {
+            opacity: 1;
+            color: var(--accent);
+        }
+
+        .progress-step.done {
+            opacity: 0.8;
+            color: var(--text-main);
+        }
+
+        .check-mark {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background-color: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            border-radius: 50%;
+            font-size: 0.7rem;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(56, 189, 248, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        /* 決策過程標籤 */
+        .decision-tags {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-main);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 推薦結果區 */
+        .response-text {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: var(--text-main);
+            white-space: pre-wrap;
+            background: rgba(30, 41, 59, 0.4);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--glass-border);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1), 0 10px 30px -5px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            font-family: 'Noto Serif TC', serif;
+            animation: fadeInDown 0.6s ease forwards;
+        }
+
+        /* 針對小標題或清單做一點預設渲染 */
+        .response-text strong {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .response-text h1,
+        .response-text h2,
+        .response-text h3,
+        .response-text h4,
+        .response-text h5,
+        .response-text h6 {
+            color: var(--accent);
+            margin-top: 1.2rem;
+            margin-bottom: 0.5rem;
+            font-family: 'Noto Serif TC', serif;
+        }
+
+        .response-text p {
+            margin-top: 0;
+            margin-bottom: 0.8rem;
+        }
+
+        .response-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        .response-text ul,
+        .response-text ol {
+            margin-top: 0;
+            padding-left: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .response-text li {
+            margin-bottom: 0.2rem;
+        }
+
+        .response-text hr {
+            border: 0;
+            height: 1px;
+            background: var(--glass-border);
+            margin: 1.5rem 0;
+        }
+
+        /* 動畫 */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* 響應式 */
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 2rem 1rem;
+            }
+
+            .response-text {
+                padding: 1.5rem;
+                font-size: 1rem;
+            }
+
+            .search-area button {
+                width: 100%;
+                padding: 0.9rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>情境<span>分析系統</span></h1>
+            <p>告訴我您孩子目前的狀況，我會為您評估危急程度並提供專業建議</p>
+        </header>
+
+        <div class="search-area">
+            <input type="text" id="userInput" placeholder="例如：孩子今天又把積木全部摔在地上，一直大叫，我真的覺得好累..."
+                onkeypress="handleKeyPress(event)">
+            <div class="search-divider"></div>
+            <div class="search-action">
+                <button id="submitBtn" onclick="getAnalysis()">開始分析</button>
+            </div>
+        </div>
+
+        <!-- 錯誤訊息提示 -->
+        <div id="errorBox" class="message-box"></div>
+
+        <!-- 狀態串流進度顯示 -->
+        <div id="progressContainer" class="hidden">
+            <ul class="progress-list" id="progressList">
+                <!-- 動態插入 li -->
+            </ul>
+        </div>
+
+        <!-- 成功結果顯示區 -->
+        <div id="resultContainer" class="hidden">
+            <div class="decision-tags" id="decisionTags">
+                <!-- 標籤插入區 -->
+            </div>
+            <div class="response-text" id="responseText"></div>
+            
+            <!-- 醫療免責聲明 -->
+            <div style="margin-top: 2rem; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 8px; font-size: 0.85rem; color: #94a3b8; line-height: 1.5; border-left: 3px solid #f59e0b;">
+                ⚠️ <strong>免責聲明：</strong> 本系統產生之分析與建議僅供情境演練與參考，無法取代專業醫療診斷與治療。若孩童出現持續性的嚴重行為、自傷或攻擊他人等緊急情況，請務必尋求專業兒心科醫師、職能治療師或心理師的協助。
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const nodeIconMap = {
+            'parse_input': '🔍 解析情境核心問題...',
+            'crisis_intervention': '🚨 評估危機處理機制...',
+            'denver_model': '🧸 制定丹佛模式（ESDM）互動策略...'
+        };
+
+        const userInputEl = document.getElementById('userInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const errorBox = document.getElementById('errorBox');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressList = document.getElementById('progressList');
+        const resultContainer = document.getElementById('resultContainer');
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') {
+                getAnalysis();
+            }
+        }
+
+        function showError(msg) {
+            errorBox.innerHTML = `⚠️ ${msg}`;
+            errorBox.classList.add('error');
+        }
+
+        function hideError() {
+            errorBox.classList.remove('error');
+        }
+
+        function addProgressStep(nodeKey) {
+            const activeEls = progressList.querySelectorAll('.active');
+            activeEls.forEach(el => {
+                el.classList.remove('active');
+                el.classList.add('done');
+                const spinner = el.querySelector('.spinner');
+                if (spinner) spinner.style.display = 'none';
+                if (!el.querySelector('.check-mark')) {
+                    const mark = document.createElement('span');
+                    mark.className = 'check-mark';
+                    mark.innerHTML = '✔';
+                    el.insertBefore(mark, el.firstChild);
+                }
+            });
+
+            const li = document.createElement('li');
+            li.className = 'progress-step active';
+
+            const text = nodeIconMap[nodeKey] || `⚙️ 處理步驟: ${nodeKey}...`;
+            li.innerHTML = `<span class="spinner"></span> <span>${text}</span>`;
+            progressList.appendChild(li);
+        }
+
+        function renderFinalData(data) {
+            // 完成最後一個節點的進度標示
+            const activeEls = progressList.querySelectorAll('.active');
+            activeEls.forEach(el => {
+                el.classList.remove('active');
+                el.classList.add('done');
+                const spinner = el.querySelector('.spinner');
+                if (spinner) spinner.style.display = 'none';
+                if (!el.querySelector('.check-mark')) {
+                    const mark = document.createElement('span');
+                    mark.className = 'check-mark';
+                    mark.innerHTML = '✔';
+                    el.insertBefore(mark, el.firstChild);
+                }
+            });
+
+            // 稍微延遲後展示結果，增加流暢感
+            setTimeout(() => {
+                progressContainer.classList.add('hidden');
+                resultContainer.classList.remove('hidden');
+            }, 500);
+
+            const tagsContainer = document.getElementById('decisionTags');
+            tagsContainer.innerHTML = '';
+
+            if (data.child_behavior) {
+                tagsContainer.innerHTML += `<div class="tag"><span>👶 行為特徵：${data.child_behavior}</span></div>`;
+            }
+
+            if (data.criticality_level) {
+                const levelMap = {
+                    'High': '<span style="color:#f87171">🚨 等級：高 (High)</span>',
+                    'Medium': '<span style="color:#fbbf24">⚠️ 等級：待評估 (Potential Risk)</span>',
+                    'Low': '<span style="color:#4ade80">✅ 等級：低 (Low)</span>'
+                };
+                const levelHtml = levelMap[data.criticality_level] || data.criticality_level;
+                tagsContainer.innerHTML += `<div class="tag">${levelHtml}</div>`;
+            }
+
+            // 使用 marked.js 安全完整地渲染 Markdown
+            document.getElementById('responseText').innerHTML = marked.parse(data.response || '');
+        }
+
+        async function getAnalysis() {
+            const userInput = userInputEl.value.trim();
+            if (!userInput) {
+                showError('請先輸入狀況描述');
+                return;
+            }
+
+            hideError();
+            resultContainer.classList.add('hidden');
+            progressContainer.classList.remove('hidden');
+            progressList.innerHTML = '';
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span> 載入中...';
+
+            try {
+                const response = await fetch('/api/recommend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_input: userInput })
+                });
+
+                if (!response.ok) {
+                    throw new Error('伺服器回傳非 200 狀態碼');
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+
+                    buffer = lines.pop(); // 保留不完整的最後一行
+
+                    for (let line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            const msg = JSON.parse(line);
+
+                            if (msg.type === "error") {
+                                showError(msg.error);
+                                progressContainer.classList.add('hidden');
+                                break;
+                            }
+
+                            if (msg.type === "progress") {
+                                addProgressStep(msg.node);
+                            }
+
+                            if (msg.type === "complete") {
+                                if (msg.data.error) {
+                                    showError(msg.data.error);
+                                    progressContainer.classList.add('hidden');
+                                } else {
+                                    renderFinalData(msg.data);
+                                }
+                            }
+                        } catch (err) {
+                            console.error("JSON parsing error for line:", line, err);
+                        }
+                    }
+                }
+
+            } catch (e) {
+                console.error(e);
+                showError('無法連線到伺服器，請確認伺服器是否異常。');
+                progressContainer.classList.add('hidden');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '開始分析';
+            }
+        }
+    </script>
+</body>
+
+</html>
