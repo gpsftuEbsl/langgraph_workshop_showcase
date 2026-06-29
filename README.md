@@ -125,5 +125,17 @@ python server.py
 
 ---
 
+### Demo 圖片
+<img width="372" height="716" alt="image" src="https://github.com/user-attachments/assets/98fea594-331f-48dd-a8e8-815828a5124a" />
+<img width="876" height="701" alt="image" src="https://github.com/user-attachments/assets/ebb67145-0d42-4dd6-8de8-473c35021f34" />
+<img width="339" height="699" alt="image" src="https://github.com/user-attachments/assets/5fa5e5bf-b0a1-4bc2-81b5-2d9660e2354b" />
+<img width="337" height="701" alt="image" src="https://github.com/user-attachments/assets/3e4c4b34-db66-4f18-b0cc-d49fdc368dac" />
+<img width="339" height="697" alt="image" src="https://github.com/user-attachments/assets/420983a5-cf3c-4179-be0b-2c0dc0c25cbb" /><img width="336" height="705" alt="image" src="https://github.com/user-attachments/assets/b546a7dd-48b3-4e18-9034-94672785db6e" />
+
+
+
+
+---
+
 ## ⚖️ 開源授權宣告
 本展示專案採用 **[CC BY-NC 4.0 (創用 CC 姓名標示-非商業性 4.0 國際授權條款)](LICENSE)** 進行保護。您可以自由分享與修改本專案架構，但禁止任何商業目的之使用。
