@@ -131,7 +131,7 @@ python server.py
 <img width="339" height="699" alt="image" src="https://github.com/user-attachments/assets/5fa5e5bf-b0a1-4bc2-81b5-2d9660e2354b" />
 <img width="337" height="701" alt="image" src="https://github.com/user-attachments/assets/3e4c4b34-db66-4f18-b0cc-d49fdc368dac" />
 <img width="339" height="697" alt="image" src="https://github.com/user-attachments/assets/420983a5-cf3c-4179-be0b-2c0dc0c25cbb" /><img width="336" height="705" alt="image" src="https://github.com/user-attachments/assets/b546a7dd-48b3-4e18-9034-94672785db6e" />
-預載入的選項與後續劇情將會先亮起
+預載入完成的選項與後續劇情將會先亮起
 
 
 
